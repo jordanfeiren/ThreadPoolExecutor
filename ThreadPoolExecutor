@@ -1,0 +1,30 @@
+ThreadPoolExecutor时候首先创建核心线程数量C，然后C个线程首先处理c1,c2该线程的任务，然后一直在for循环拉取阻塞队列中的数据，当c1,c2忙，
+阻塞队列也满的时候，并且线程熟练小于Max时候，在去创建Max-core个线程处理task,
+其中max-core和core处理完task之后都会去拉worequeue的task其中区别是timed根据keepAliveTime（max-core的超时时间）
+     Runnable r = timed ?
+                    workQueue.poll(keepAliveTime, TimeUnit.NANOSECONDS) :
+                    workQueue.take();
+                    
+          还有下面的true false来设置max-core的死亡。         
+        int c = ctl.get();
+        if (workerCountOf(c) < corePoolSize) {
+            if (addWorker(command, true))
+                return;
+            c = ctl.get();
+        }
+        if (isRunning(c) && workQueue.offer(command)) {
+            int recheck = ctl.get();
+            if (! isRunning(recheck) && remove(command))
+                reject(command);
+            else if (workerCountOf(recheck) == 0)
+                addWorker(null, false);
+        }
+        else if (!addWorker(command, false))
+            reject(command);
+    }
+    
+    下面是for循环拉取workqueue的代码
+    while (task != null || (task = getTask()) != null)
+   非核心线程处理完当前的task并且从队列中拉取不到数据时候会去执行workQueue.poll(keepAliveTime, TimeUnit.NANOSECONDS) :返回null
+   这样for循环就会结束，当前线程就会死亡掉。
+   而核心线程则不会因为   workQueue.take();会去执行take，它会一直阻塞住。
