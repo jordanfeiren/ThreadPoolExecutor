@@ -1,0 +1,7 @@
+Name Serve Broker 保持长连接， Broker 状态存储在 brokerLiveTable 中，
+NameS erv er 每收到一个心跳包，将更新 brokerL iveT ble 中关于 Broker 的状态信息以及路
+由表（ topicQueueTable brokerAddrTab le brokerLiveTabl fi lterServerTable 更新上述
+路由表（HashTable ）使用了锁粒度较少的读写锁，允许多个消息发送者（ roducer ）并发读，
+保证消息发送时的高并发 但同一时刻 NameServer 只处理一个 Broker 心跳包，多个心跳
+包请求串行执行 这也是读写锁经典使用场景，更多关于读写锁的信息，可以参考笔者的
+博文 http ://b log.csdn .net/prestigeding/article/ details/ 5 3 2867 5 6
